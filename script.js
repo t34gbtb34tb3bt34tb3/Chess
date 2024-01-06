@@ -41,10 +41,16 @@ function helper(image, value){
     img.src = image;
     img.width = 80;
     img.height = 80;
+    img.id = "img";
     z = document.getElementById(str(value[1]));
     z.appendChild(img);
 }
 function assignPiecesToBoard(){
+    try{
+        for(let [key, value] of Object.entries(plansza)){
+        document.getElementById("img").remove()
+        }} catch (error){console.log(error)}
+
     for(let [key, value] of Object.entries(plansza)){
         switch (value[0]){
             case "wp":
@@ -125,4 +131,20 @@ plansza["bk"] = ["bk", [3, 7]]
 gen();
 assignPiecesToBoard();
 plansza["bk"][1] = [2,3]
-gen();
+
+temp = {}
+document.addEventListener('click', function(event){
+    if(event.target.id == "img"){
+        for(let [key, value] of Object.entries(plansza)){
+            if(value[1]==event.target.id){
+                temp = key
+            }
+        }
+        console.log(temp)
+    }
+    if(event.target.id != "img" && temp != {}){
+        console.log(event.target.id)
+        temp[1] = event.target.id
+        assignPiecesToBoard()
+    }
+})
