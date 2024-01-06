@@ -1,0 +1,21 @@
+.all{
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+}
+.row{
+    display: flex;
+    flex-direction: row;
+}
+
+.box1{
+    width: 80px;
+    height: 80px;
+    background-color: #fccc74;
+}
+.box2{
+    width: 80px;
+    height: 80px;
+    background-color: #8a785d;
+}
