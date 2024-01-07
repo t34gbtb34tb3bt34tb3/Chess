@@ -9,7 +9,6 @@ function gen(){
             h.appendChild(g);
             k++;
             if(k>=3){k=1};
-            //console.log(k)
         }
         if (i % 2 != 0) {
             k = 2;  
@@ -18,7 +17,7 @@ function gen(){
         }
     }
 }
-function str(input){
+function stri(input){
     return JSON.stringify(input);
 }
 
@@ -42,15 +41,19 @@ function helper(image, value){
     img.width = 80;
     img.height = 80;
     img.id = "img";
-    z = document.getElementById(str(value[1]));
+    z = document.getElementById(stri(value[1]));
     z.appendChild(img);
 }
 function assignPiecesToBoard(){
-    try{
-        for(let [key, value] of Object.entries(plansza)){
-        document.getElementById("img").remove()
-        }} catch (error){console.log(error)}
-
+    for(let i = 7; i >= 0; i--){
+        h = document.getElementById(i);
+        for(let j = 0; j < 8; j++){
+            del = document.getElementById("["+j+","+i+"]");
+            try{
+                del.remove()
+            }catch(error){console.log(error)}
+    }}
+    gen()
     for(let [key, value] of Object.entries(plansza)){
         switch (value[0]){
             case "wp":
@@ -95,7 +98,13 @@ function assignPiecesToBoard(){
         }
     }
 }
-
+function textToArray(text){
+    x = text.replace("[", "").replace("]", "").split(",")
+    result = x.map(function (a) { 
+        return parseInt(a); 
+    });
+    return result
+}
 
 
 
@@ -108,7 +117,6 @@ for (let p = 0; p < 8; p++) {
 }
 for (let p = 0; p < 8; p++) {
     plansza["b" + p] = ["bp", [p, 6]];
-    console.log(p)
 }
 plansza["wr1"] = ["wr", [0, 0]]
 plansza["wr2"] = ["wr", [7, 0]]
@@ -130,21 +138,39 @@ plansza["bk"] = ["bk", [3, 7]]
 
 gen();
 assignPiecesToBoard();
-plansza["bk"][1] = [2,3]
 
-temp = {}
+temp = []
 document.addEventListener('click', function(event){
-    if(event.target.id == "img"){
-        for(let [key, value] of Object.entries(plansza)){
-            if(value[1]==event.target.id){
-                temp = key
+    if(event.target.parentNode.className == "row" || event.target.parentNode.parentNode.className == "row"){
+        //check czy dotyka planszy
+        if(event.target.id == "img"){ //czy zaznaczam bierke
+            for(let [key, value] of Object.entries(plansza)){ //przez kazda bierke z listy
+                if(stri(value[1])==event.target.parentNode.id){ //czy pozycja bierki jest równa id pola
+                    temp.push(key) //ustaw zaznaczona bierke
+                }
+            }
+            doc = document.getElementById(event.target.parentNode.id) //kolor
+            if(doc.className == "box2"){
+                doc.style.backgroundColor = '#dde246';
+            } else if(doc.className == "box1"){
+                doc.style.backgroundColor = "#f7f783";
             }
         }
-        console.log(temp)
-    }
-    if(event.target.id != "img" && temp != {}){
-        console.log(event.target.id)
-        temp[1] = event.target.id
-        assignPiecesToBoard()
+
+        if(temp.length > 0){
+            if(temp.length == 1 && stri(plansza[temp[0]][1]) != event.target.parentNode.id){ //przesuwanie koloru bez bicia
+                plansza[temp[0]][1] = textToArray(event.target.id)
+                temp = []
+                assignPiecesToBoard()
+            } else if(temp.length == 2 && plansza[temp[0]][0] != plansza[temp[1]][0]){ //przesuwanie z biciem
+                plansza[temp[0]][1] = plansza[temp[1]][1]
+                delete plansza[temp[1]]
+                console.log(plansza)
+                temp = []
+                assignPiecesToBoard()
+            } else if(temp.length > 2){ //jesli wyjdzie poza to resetuj
+                temp = []
+            }
+        }
     }
 })

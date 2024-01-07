@@ -36,3 +36,19 @@ function checkPos(pos){
     }}
     return false
 }
+
+if(temp.length > 0){ //czy wybrane miejsce jest na planszy
+    console.log(temp)
+    if(temp.length == 1 ){ //jesli jest jeden element
+        plansza[temp[0]][1] = textToArray(event.target.id) //ustaw pozycje
+        temp = [] //oproznij
+        assignPiecesToBoard() //wyswietl
+
+    }else if(temp.length == 2){ //jesli sa 2 elementy
+        plansza[temp[0]][1] = textToArray(plansza[temp[1]][1])
+        console.log(plansza[temp[1]])
+        temp = []
+        assignPiecesToBoard()
+
+    }else{temp = {}}
+}
