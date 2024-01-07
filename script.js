@@ -105,8 +105,62 @@ function textToArray(text){
     });
     return result
 }
+function checkPos(pos){
+    for(let [key,value] of 
+    Object.entries(plansza)){
+      if(stri(value[1])
+      ==stri(pos)){return key;}
+}
+function pawn(piece, target, color){
+    if(color == "w"){
+        if(piece[1][1] == 2){
+            if(checkPos(target) && checkPos(target[1]+1) && piece[1] == target[1]+2){ //o dwa do przodu
+                return true
+            } else {return false}
+        }
+    }else{
+        if(piece[1][1] == 6){
+            if(checkPos(target) && checkPos(target[1]-1) && piece[1] == target[1]-2){ //o dwa do przodu
+                return true
+            } else {return false}
+        }
+    }
+}
 
-
+function canMove(piece, target){
+    switch (piece){
+        case "wp":
+            pawn(piece,target,"w");
+            break;
+        case "wn":
+            break;
+        case "wr":
+            break;
+        case "wb":
+            break;
+        case "wq":
+            break;
+        case "wk":
+            break;
+        case "bp":
+            pawn(piece,target,"b")
+            break;
+        case "bn":
+            break;
+        case "br":
+            break;
+        case "bb":
+            break;
+        case "bq":
+            break;
+        case "bk":
+            break;
+        default:
+            console.log("Nieznana bierka: ", value[0]);
+            break;
+    }
+    }
+}
 
 
 
@@ -158,7 +212,7 @@ document.addEventListener('click', function(event){
         }
 
         if(temp.length > 0){
-            if(temp.length == 1 && stri(plansza[temp[0]][1]) != event.target.parentNode.id){ //przesuwanie koloru bez bicia
+            if(temp.length == 1 && stri(plansza[temp[0]][1]) != event.target.parentNode.id && canMove(plansza[temp[0]], temp[0][1])){ //przesuwanie koloru bez bicia
                 plansza[temp[0]][1] = textToArray(event.target.id)
                 temp = []
                 assignPiecesToBoard()
