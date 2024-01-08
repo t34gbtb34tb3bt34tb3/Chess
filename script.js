@@ -110,7 +110,7 @@ function checkPos(pos){
     Object.entries(plansza)){
       if(stri(value[1])
       ==stri(pos)){return key;}
-}
+}}
 function pawn(piece, target, color){
     if(color == "w"){
         if(piece[1][1] == 2){
@@ -128,10 +128,10 @@ function pawn(piece, target, color){
 }
 
 function canMove(piece, target){
-    switch (piece){
+    switch (piece[0]){
         case "wp":
-            pawn(piece,target,"w");
-            break;
+            console.log(pawn(piece,target,"w"))
+            return pawn(piece,target,"w");
         case "wn":
             break;
         case "wr":
@@ -156,11 +156,11 @@ function canMove(piece, target){
         case "bk":
             break;
         default:
-            console.log("Nieznana bierka: ", value[0]);
+            console.log("Nieznana bierka: ", piece);
             break;
     }
     }
-}
+
 
 
 
@@ -211,6 +211,7 @@ document.addEventListener('click', function(event){
             }
         }
 
+        console.log(canMove(plansza[temp[0]], temp[0][1]))
         if(temp.length > 0){
             if(temp.length == 1 && stri(plansza[temp[0]][1]) != event.target.parentNode.id && canMove(plansza[temp[0]], temp[0][1])){ //przesuwanie koloru bez bicia
                 plansza[temp[0]][1] = textToArray(event.target.id)
