@@ -99,17 +99,7 @@ function checkClassicMove(ax, ay, bx, by){ //a przesun na b + c jest dla pionkow
 					return true
 				}else if(ax == bx && ay-1 == by && plansza[by][bx] === null){ //pion o jeden do przodu dla czarnego
 					return true
-				}else if(ay+1 == by && ax-1 == bx && (plansza[ay][ax][0] == "w" && plansza[by][bx][0] == "b")){ //bicie po lewym skosie dla bialego
-					return true	
-				}else if(ay+1 == by && ax+1 == bx && (plansza[ay][ax][0] == "w" && plansza[by][bx][0] == "b")){ //bicie po prawym skosie dla bialego
-					return true	
-				}else if(ay-1 == by && ax-1 == bx && (plansza[ay][ax][0] == "b" && plansza[by][bx][0] == "w")){ //bicie po lewym skosie dla czarnego
-					return true	
-				}else if(ay-1 == by && ax+1 == bx && (plansza[ay][ax][0] == "b" && plansza[by][bx][0] == "w")){ //bicie po prawym skosie dla czarnego
-					return true	
 				}
-				return false
-			}else{
 				console.log("sprawdzam enpassant")
 				if(ay+1 == by && ax-1 == bx && (plansza[ay][ax][0] == "w" && plansza[ay][ax-1][0] == "b") && ay == 5){ //enpasant dla bialych po lewym skosie
 					return true
@@ -119,6 +109,17 @@ function checkClassicMove(ax, ay, bx, by){ //a przesun na b + c jest dla pionkow
 					return true
 				}else if(ay-1 == by && ax+1 == bx && (plansza[ay][ax][0] == "b" && plansza[ay][ax+1][0] == "w") && ay == 4){ //enpasant dla bialych po prawym skosie
 					return true
+				}
+				return false
+			}else{
+				if(ay+1 == by && ax-1 == bx && (plansza[ay][ax][0] == "w" && plansza[by][bx][0] == "b")){ //bicie po lewym skosie dla bialego
+					return true	
+				}else if(ay+1 == by && ax+1 == bx && (plansza[ay][ax][0] == "w" && plansza[by][bx][0] == "b")){ //bicie po prawym skosie dla bialego
+					return true	
+				}else if(ay-1 == by && ax-1 == bx && (plansza[ay][ax][0] == "b" && plansza[by][bx][0] == "w")){ //bicie po lewym skosie dla czarnego
+					return true	
+				}else if(ay-1 == by && ax+1 == bx && (plansza[ay][ax][0] == "b" && plansza[by][bx][0] == "w")){ //bicie po prawym skosie dla czarnego
+					return true	
 				}
 			}
 		}
