@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<html lang="pl">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Szachy - strona testowa</title>
+	<link rel="stylesheet" href="szachy.css">
+</head>
+<body>
+	<div id="all"></div>
+	<div id="controller">
+		<label>Testowanie ruchow (czy sa legalne)</label> <br>
+		<label>Miejsce startowe (bierka 1)</label> <label>x:</label>
+		<input type="number" id="ax" placeholder="x" min="1" max="8" value="1"> <label>y:</label>
+		<input type="number" id="ay" placeholder="y" min="1" max="8" value="1"> <br>
+		<label>Miejsce docelowe (bierka 2)</label> <label>x:</label>
+		<input type="number" id="bx" placeholder="x" min="1" max="8" value="1"> <label>y:</label>
+		<input type="number" id="by" placeholder="y" min="1" max="8" value="1"> <br>
+		<button onclick="debugHtmlLegalMove()">sprawdz ruch</button>
+		<button onclick="debugHtmlMove()">zrob ruch</button>
+		<div id="debug"></div><br>
+		by usunac bierke wpisz jej kordynaty na dole i na gorze
+	</div>
+	
+	<script src="szachy.js"></script>
+</body>
+</html>
+
+</html>
