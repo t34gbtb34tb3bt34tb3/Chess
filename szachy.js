@@ -102,7 +102,6 @@ function checkClassicMove(ax, ay, bx, by){ //a przesun na b + c jest dla pionkow
 					return true
 				}
 				console.log("sprawdzam enpassant")
-				console.log(plansza[ay][ax].includes("w"), plansza[ay][ax-1].includes("b"), ay)
 				if(ay+1 == by && ax-1 == bx && (plansza[ay][ax].includes("w") && plansza[ay][ax-1].includes("b")) && ay == 4){ //enpasant dla bialych po lewym skosie
 					return true
 				}else if(ay+1 == by && ax+1 == bx && (plansza[ay][ax].includes("w") && plansza[ay][ax-1].includes("b")) && ay == 4){ //enpasant dla bialych po prawym skosie
