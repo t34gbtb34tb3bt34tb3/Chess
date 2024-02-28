@@ -90,9 +90,10 @@ function checkClassicMove(ax, ay, bx, by){ //a przesun na b + c jest dla pionkow
 	console.log("przeszlo 1")
 	if(!(ax == bx && ay == by)){ //czy to nie to samo
 		console.log("przeszlo 2")
-		if(plansza[ay][ax][1] === "p"){ //pion
+		if(plansza[ay][ax][1] == "p"){ //pion
 			console.log("przeszlo 3")
-			if(plansza[by][bx] != null){
+			if(plansza[by][bx] == null){
+				console.log("sprawdzam ruch do przodu")
 				if(ax == bx && (ay + 2 == by && ay == 1) || (ay - 2 == by && ay == 6)){ //y+=2 x=x 
 					return true
 				}else if(ax == bx && ay+1 == by && plansza[by][bx] === null){ //pion o jeden do przodu dla bialego
@@ -101,16 +102,16 @@ function checkClassicMove(ax, ay, bx, by){ //a przesun na b + c jest dla pionkow
 					return true
 				}
 				console.log("sprawdzam enpassant")
-				if(ay+1 == by && ax-1 == bx && (plansza[ay][ax][0] == "w" && plansza[ay][ax-1][0] == "b") && ay == 5){ //enpasant dla bialych po lewym skosie
+				console.log(plansza[ay][ax].includes("w"), plansza[ay][ax-1].includes("b"), ay)
+				if(ay+1 == by && ax-1 == bx && (plansza[ay][ax].includes("w") && plansza[ay][ax-1].includes("b")) && ay == 4){ //enpasant dla bialych po lewym skosie
 					return true
-				}else if(ay+1 == by && ax+1 == bx && (plansza[ay][ax][0] == "w" && plansza[ay][ax+1][0] == "b") && ay == 5){ //enpasant dla bialych po prawym skosie
+				}else if(ay+1 == by && ax+1 == bx && (plansza[ay][ax].includes("w") && plansza[ay][ax-1].includes("b")) && ay == 4){ //enpasant dla bialych po prawym skosie
 					return true
-				}else if(ay-1 == by && ax-1 == bx && (plansza[ay][ax][0] == "b" && plansza[ay][ax-1][0] == "w") && ay == 4){ //enpasant dla czarnych po lewym skosie
+				}else if(ay-1 == by && ax-1 == bx && (plansza[ay][ax].includes("b") && plansza[ay][ax-1].includes("w")) && ay == 5){ //enpasant dla czarnych po lewym skosie
 					return true
-				}else if(ay-1 == by && ax+1 == bx && (plansza[ay][ax][0] == "b" && plansza[ay][ax+1][0] == "w") && ay == 4){ //enpasant dla bialych po prawym skosie
+				}else if(ay-1 == by && ax+1 == bx && (plansza[ay][ax].includes("b") && plansza[ay][ax-1].includes("w")) && ay == 5){ //enpasant dla czarnych po prawym skosie
 					return true
-				}
-				return false
+				}else{return false}
 			}else{
 				if(ay+1 == by && ax-1 == bx && (plansza[ay][ax][0] == "w" && plansza[by][bx][0] == "b")){ //bicie po lewym skosie dla bialego
 					return true	
