@@ -1,26 +1,24 @@
-const holder = document.getElementById("all");
+const chessboard = document.getElementById("chessboard");
 const divSize = 80
+plansza = Array(64).fill()
+startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
+const offset = [8,-8,-1,1,7,-7,9,-9];
+const knightOffset = [15, -15, 17, -17, 6, -6, 10, -10];
+kolorDoPoruszenia = "w";
+numSquaresToEdge = []; //inicjowanie zmiennej bo js jest kijowy
+highlighted = []
+whiteKing = 4
+blackKing = 60
 
-function Empty2DArray(rows, cols) { //y; x
-    return Array.from({ length: rows },
-        () => Array(cols).fill(null));
-}
-function createHtmlBoard(){
-	k = 0 //kolor
-	for(y = 7; y >= 0; y--){
-		row = document.createElement('div');
-		row.className = "row"
-		row.id = "row"+y
-		for(x=0; x<=7; x++){
-			cell = document.createElement('div');
-			cell.className = (k == 1) ? "piece coordinate-light" : "piece coordinate-dark";
-			cell.id = y.toString()+x.toString()
-			row.appendChild(cell);
-			k++;
-			k = (k == 2) ? 0 : 1 //idk cos wymyslilem jak bylem na haju/zmeczony
+function createBoard(){
+	for (let row = 7; row >= 0; row--) {
+		for (let col = 0; col < 8; col++) {
+			const cell = document.createElement('div');
+			const pos = row * 8 + col;
+			cell.className = ((row+col)%2===0) ? "square coordinate-light" : "square coordinate-dark";
+			cell.id = pos;
+			chessboard.appendChild(cell);
 		}
-		k++
-		holder.appendChild(row);
 	}
 }
 function assignPiecesToBoard(){ //pokaz bierki
@@ -30,175 +28,367 @@ function assignPiecesToBoard(){ //pokaz bierki
 	imgs.forEach(img => { 
 		if(img.classList.contains("img")){img.remove()}
 	});
-
 	//przypisywanie bierek do pozycji
-	for(y = 0; y<=7; y++){
-		for(x=0; x<=7; x++){ 
-			if(plansza[y][x] != null){ //jesli pozycja nie jest pusta
-				piece = plansza[y][x][0]+plansza[y][x][1] //jaka bierka (kolor + bierka)
-				
-				pieceEle = document.createElement('img'); //utworz child
-				pieceEle.width = divSize //wielkosc
-				pieceEle.height = divSize
-				pieceEle.className = piece+" img" //zdjecie przez klase css / pijane 
-				document.getElementById(y.toString()+x.toString()).appendChild(pieceEle)
+	for(var i = 0; i<64; i++){
+		if(plansza[i] != null){ //jesli pozycja nie jest pusta
+			piece = plansza[i][0]+plansza[i][1] //jaka bierka (kolor, bierka)
+			pieceEle = document.createElement('img'); //utworz child
+			pieceEle.width = divSize //wielkosc
+			pieceEle.height = divSize
+			pieceEle.className = piece+" img" //zdjecie przez klase css / pijane 
+			document.getElementById(i).appendChild(pieceEle)
+		}
+	}
+}
+function isLetter(str) { //dziekuje stackoverflow
+  return str.length === 1 && str.match(/[a-z]/i);
+}
+function isNumber(str) { //dziekuje stackoverflow + javascript jest zwalony (Number.isInteger('7') = false)
+  return str.length === 1 && str.match(/[0-9]/i);
+}
+function loadFEN(fen){
+	file = 0; rank = 7; //file = x; rank = y;
+	for(var i = 0; i<fen.length; i++){
+		symbol = fen[i];
+		if(symbol == '/'){
+			file = 0;
+			rank--;
+		}else{
+			if(isNumber(symbol)){
+				file+=parseInt(symbol);
+			}else if(isLetter(symbol)){
+				color = (symbol === symbol.toUpperCase()) ? "w" : "b";
+				piece = symbol.toLowerCase();
+				plansza[rank*8+file] = [color, piece];
+				file++;
 			}
 		}
 	}
 }
 
-function assignStartPosition(){ //skonczone, dziala
-	//assign pieces
-	//kolor, pionek (angielski skrot)
-	for(i=0;i<=7;i++){ //i=x
-		plansza[1][i]=["w","p"];
-		plansza[6][i]=["b","p"];
+function possibleMoves(){
+	for(var file = 0; file < 8; file++){
+		for(var rank = 0; rank < 8; rank++){
+			var N = 7-rank;
+			var S = rank;
+			var W = file;
+			var E = 7-file;
+
+			var squareIndex = rank*8+file;
+			
+			NW = Math.min(N, W); //skosy
+			SE = Math.min(S, E);
+			NE = Math.min(N, E);
+			SW = Math.min(S, W);
+			numSquaresToEdge[squareIndex] = [N,S,W,E,NW,SE,NE,SW];
+		}
 	}
-	plansza[0][0] = ["w","r"] //2x biale wieze
-	plansza[0][7] = ["w","r"] 
-	plansza[7][0] = ["b","r"] //2x czarne wieze
-	plansza[7][7] = ["b","r"]
+}
+highlighted = {}
+function highlight(array, cssClass){
+	if(highlighted.hasOwnProperty(cssClass)){
+		for(i = 0; i<highlighted[cssClass].length; i++){
+			document.getElementById(highlighted[cssClass][i]).classList.remove(cssClass)
+		}
+		highlighted[cssClass] = [];
+	}else {
+        highlighted[cssClass] = [];
+    }
+	if(array === undefined){return 0}
+	console.table(array)
+	for(i = 0; i<array.length; i++){
+		let e = document.getElementById(array[i]);
+		if(!isNaN(e.id)){
+			e.classList.add(cssClass);
+			highlighted[cssClass].push(array[i]);
+		}
+	}
+}
+function generateSlidingMoves(start, piece){ //po skosie
+	startIndex = (piece[1] == "b") ? 4 : 0;
+	endIndex = (piece[1] == "r") ? 4 : 8;
+	moves = [];
+	for(var index = startIndex; index<endIndex; index++){
+		for(var n = 0; n<numSquaresToEdge[start][index]; n++){
+			var target = start + offset[index] * (n+1); //next pos
+			if(plansza[target] != null){
+				if(plansza[target][0] === piece[0]){ //czy ten sam kolor
+					break;
+				}
+				moves.push(target)
+				if(plansza[target][0] != piece[0]){
+					break;
+				}
+			}
+			moves.push(target);
+		}
+	}
+	console.table(moves)
+	return moves;
+}
+function ruch(start, target, array){
+	array[target] = array[start];
+	array[start] = null;
+}
 
-	plansza[0][1] = ["w","n"] //2x biale skoczki
-	plansza[0][6] = ["w","n"] 
-	plansza[7][1] = ["b","n"] //2x czarne skoczki
-	plansza[7][6] = ["b","n"]
+function deepCopy(obj) {
+	return JSON.parse(JSON.stringify(obj));
+}
+function moveHelper(start, target){
+	highlight([], "hint"); //usuń highlight
+	if(plansza[start][0] === kolorDoPoruszenia){ // czyja tura
+		if(plansza[target] != null && plansza[target][0] == kolorDoPoruszenia){
+			return 0
+		}
+		if(plansza[start][1] == "b" || plansza[start][1] == "r" || plansza[start][1] == "q"){
+			if(generateSlidingMoves(start, plansza[start]).includes(target)){
+				console.log("ruch")
+				let poRuchu = deepCopy(plansza);
+				ruch(start, target, poRuchu);
+				if(findCheck(((kolorDoPoruszenia == "w") ? whiteKing : blackKing), poRuchu)){
+					ruch(start, target, plansza);
+					assignPiecesToBoard();
+					kolorDoPoruszenia = (kolorDoPoruszenia == "w") ? "b" : "w";
+					document.getElementById("tomove").innerHTML = "To move: " + kolorDoPoruszenia;
+				}
+			}
+		}else if(plansza[start][1] == "p"){
+			if(generatePawnMoves(start, plansza[start]).includes(target)){
+				console.log("ruch")
+				let poRuchu = deepCopy(plansza);
+				ruch(start, target, poRuchu);
+				if(findCheck(((kolorDoPoruszenia == "w") ? whiteKing : blackKing), poRuchu)){
+					ruch(start, target, plansza);
+					assignPiecesToBoard();
+					kolorDoPoruszenia = (kolorDoPoruszenia == "w") ? "b" : "w";
+					document.getElementById("tomove").innerHTML = "To move: " + kolorDoPoruszenia;
+				}
+			}
+		}else if(plansza[start][1] == "n"){
+			if(generateKnightMoves(start, plansza[start]).includes(target)){
+				console.log("ruch")
+				let poRuchu = deepCopy(plansza);
+				ruch(start, target, poRuchu);
+				if(findCheck(((kolorDoPoruszenia == "w") ? whiteKing : blackKing), poRuchu)){
+					ruch(start, target, plansza);
+					assignPiecesToBoard();
+					kolorDoPoruszenia = (kolorDoPoruszenia == "w") ? "b" : "w";
+					document.getElementById("tomove").innerHTML = "To move: " + kolorDoPoruszenia;
+				}
+			}
+		}
+		else if(plansza[start][1] == "k"){
+			if(generateKingMoves(start, plansza[start]).includes(target)){
+				console.log("ruch")
+				let poRuchu = deepCopy(plansza);
+				let kingPos = ((kolorDoPoruszenia == "w") ? whiteKing : blackKing);
+				ruch(start, target, poRuchu);
+				if (kolorDoPoruszenia === "w") {
+					whiteKing = target;
+				} else {
+					blackKing = target;
+				}
+				if(findCheck(target, poRuchu)){
+					ruch(start, target, plansza);
+					assignPiecesToBoard();
+					kolorDoPoruszenia = (kolorDoPoruszenia == "w") ? "b" : "w";
+					document.getElementById("tomove").innerHTML = "To move: " + kolorDoPoruszenia;
+				}else{
+					if (kolorDoPoruszenia === "w") {
+						whiteKing = kingPos;
+					} else {
+						blackKing = kingPos;
+					}
+				}
+			}
+		}
+	}
+}
 
-	plansza[0][2] = ["w","b"] //2x biale gonce
-	plansza[0][5] = ["w","b"] 
-	plansza[7][2] = ["b","b"] //2x czarne gonce
-	plansza[7][5] = ["b","b"]
-
-	plansza[0][3] = ["w","q"] //biala damka
-	plansza[0][4] = ["w","k"] //bialy krol
-	plansza[7][3] = ["b","q"] //czarna damka
-	plansza[7][4] = ["b","k"] //czarny krol
+function generatePawnMoves(start, piece){
+	let moves = []
+	if(piece[0] == "w"){ //jesli bialy
+		if(start > 7 && start < 16){ //ruch o dwa do przodu
+			if(plansza[start+offset[0]] == null){
+				moves.push(start+offset[0]);
+				if(plansza[start+2*offset[0]] == null){
+					moves.push(start+2*offset[0]);
+				}
+			}
+		}else if(start > 15){ // do przodu
+			if(plansza[start+offset[0]] == null){
+				moves.push(start+offset[0]);
+			}
+		}
+		if(plansza[start+offset[4]] != null && plansza[start+offset[4]][0] == "b"){ 
+			moves.push(start+offset[4]);
+		}
+		if(plansza[start+offset[6]] != null && plansza[start+offset[6]][0] == "b"){ 
+			moves.push(start+offset[6]);
+		}
+	}else if(piece[0] == "b"){ //jesli bialy 
+		if(start > 47 && start < 56){ //ruch o dwa do przodu
+			if(plansza[start+offset[1]] == null){
+				moves.push(start+offset[1]);
+				if(plansza[start+2*offset[1]] == null){
+					moves.push(start+2*offset[1]);
+				}
+			}
+		}else if(start < 56){ // do przodu
+			if(plansza[start+offset[1]] == null){
+				moves.push(start+offset[1]);
+			}
+		}
+		if(plansza[start+offset[5]] != null && plansza[start+offset[5]][0] == "w"){ 
+			moves.push(start+offset[5]);
+		}
+		if(plansza[start+offset[7]] != null && plansza[start+offset[7]][0] == "w"){ 
+			moves.push(start+offset[7]);
+		}
+	}
+	console.log("returning")
+	return moves
+}
+function move(){
+	for(var i = 0; i<64; i++){
+		if(plansza[i] != null){
+			if(plansza[i][0] === kolorDoPoruszenia){ // czyja tura
+				if(plansza[i][1] == "b" || plansza[i][1] == "r" || plansza[i][1] == "q"){
+					
+				}
+			}
+		}
+	}
 }
 
 function start(){
-	assignStartPosition() //przypisz poczatkowa pozycje bierek
-	createHtmlBoard() //stworz plansze na stronie
-	assignPiecesToBoard(false) //wyswietl bierki na stronie
+	createBoard();
+	loadFEN(startFEN);
+	assignPiecesToBoard();
+	possibleMoves(); // generate array for moves
+	document.getElementById("tomove").innerHTML = "To move: " + kolorDoPoruszenia; // kolor do poruszania
 }
 
-function raycast(origin){
-	originX = origin 
-	
-}
-function checkClassicMove(ax, ay, bx, by){ //a przesun na b + c jest dla pionkow
-	if(ax<0 || ax>7 || ay<0 || ay>7 || bx<0 || bx>7 || by<0 || by>7){return false} //jesli wartosc jest poza szachownica to anuluj
-	console.log("przeszlo 1")
-	if(!(ax == bx && ay == by)){ //czy to nie to samo
-		console.log("przeszlo 2")
-		if(plansza[ay][ax][1] == "p"){ //pion
-			console.log("przeszlo 3")
-			if(plansza[by][bx] == null){
-				console.log("sprawdzam ruch do przodu")
-				if(ax == bx && (ay + 2 == by && ay == 1) || (ay - 2 == by && ay == 6)){ //y+=2 x=x 
-					return true
-				}else if(ax == bx && ay+1 == by && plansza[by][bx] === null){ //pion o jeden do przodu dla bialego
-					return true
-				}else if(ax == bx && ay-1 == by && plansza[by][bx] === null){ //pion o jeden do przodu dla czarnego
-					return true
+function findCheck(kingId, array){
+	let checks = []
+	for(var index = 0; index<4; index++){ //po skosach dla figur r,q
+		for(var n = 0; n<numSquaresToEdge[kingId][index]; n++){
+			var target = kingId + offset[index] * (n+1); //next pos
+			if(array[target] != null){
+				if(array[target][0] === array[kingId][0]){ //czy ten sam kolor
+					break;
 				}
-				console.log("sprawdzam enpassant")
-				if(ay+1 == by && ax-1 == bx && (plansza[ay][ax].includes("w") && plansza[ay][ax-1].includes("b")) && ay == 4){ //enpasant dla bialych po lewym skosie
-					return true
-				}else if(ay+1 == by && ax+1 == bx && (plansza[ay][ax].includes("w") && plansza[ay][ax-1].includes("b")) && ay == 4){ //enpasant dla bialych po prawym skosie
-					return true
-				}else if(ay-1 == by && ax-1 == bx && (plansza[ay][ax].includes("b") && plansza[ay][ax-1].includes("w")) && ay == 5){ //enpasant dla czarnych po lewym skosie
-					return true
-				}else if(ay-1 == by && ax+1 == bx && (plansza[ay][ax].includes("b") && plansza[ay][ax-1].includes("w")) && ay == 5){ //enpasant dla czarnych po prawym skosie
-					return true
-				}else{return false}
-			}else{
-				if(ay+1 == by && ax-1 == bx && (plansza[ay][ax][0] == "w" && plansza[by][bx][0] == "b")){ //bicie po lewym skosie dla bialego
-					return true	
-				}else if(ay+1 == by && ax+1 == bx && (plansza[ay][ax][0] == "w" && plansza[by][bx][0] == "b")){ //bicie po prawym skosie dla bialego
-					return true	
-				}else if(ay-1 == by && ax-1 == bx && (plansza[ay][ax][0] == "b" && plansza[by][bx][0] == "w")){ //bicie po lewym skosie dla czarnego
-					return true	
-				}else if(ay-1 == by && ax+1 == bx && (plansza[ay][ax][0] == "b" && plansza[by][bx][0] == "w")){ //bicie po prawym skosie dla czarnego
-					return true	
+				if(array[target][0] != array[kingId][0]){ //czy nie ten sam kolor
+					if(array[target][1] == "r" || array[target][1] == "q"){
+						checks.push(target);
+					}
 				}
 			}
 		}
 	}
-	return false //default
-}
-function move(ax, ay, bx, by){
-	plansza[by][bx] = plansza[ay][ax]
-	plansza[ay][ax] = null
-	assignPiecesToBoard()
-}
-function splitInHalf(input){ //suport dla listenera + dziala
-	input = input.toString()
-	return [parseInt(input[0]),parseInt(input[1])]
-}
-highlighted = []
-function highlight(target, czyDel){ //podswietl + dziala
-	if(czyDel === false){
-		console.log("dziala")
-		highlighted.push(target)
-		target.classList.add("highlight")
+	for(var index = 4; index<8; index++){ //po skosach dla figur b,q
+		for(var n = 0; n<numSquaresToEdge[kingId][index]; n++){
+			var target = kingId + offset[index] * (n+1); //next pos
+			if(array[target] != null){
+				if(array[target][0] === array[kingId][0]){ //czy ten sam kolor
+					break;
+				}
+				if(array[target][0] != array[kingId][0]){ //czy nie ten sam kolor
+					if(array[target][1] == "b" || array[target][1] == "q"){
+						checks.push(target);
+					}
+				}
+			}
+		}
+	}
+	for(let i = 0; i < 8; i++){ //sprawdz skoczki
+		let target = kingId + knightOffset[i];
+		if((target > 0 && target < 64) && (array[target] != null && array[target][0] != array[kingId][0])){
+			if(i>3){
+				if(!(Math.abs(kingId/8 - target/8) > 2 || Math.abs(kingId%8 - target%8) > 2)){
+					checks.push(target);
+				}
+			}else{
+				checks.push(target);
+			}
+		}
+	}
+	console.log(checks)
+	if(checks.length == 0){
+		return true
 	}else{
-		highlighted.forEach(del =>{
-			del.classList.remove("highlight")
-		})
+		return false
 	}
 }
 
-function debugHtmlLegalMove(){
-	ax = document.getElementById("ax").value-1
-	ay = document.getElementById("ay").value-1
-	bx = document.getElementById("bx").value-1
-	by = document.getElementById("by").value-1
-	document.getElementById("debug").innerHTML = checkClassicMove(ax, ay, bx, by)
-}
-function debugHtmlMove(){
-	ax = document.getElementById("ax").value-1
-	ay = document.getElementById("ay").value-1
-	bx = document.getElementById("bx").value-1
-	by = document.getElementById("by").value-1
-	move(ax,ay,bx,by)	
-}
-fClick = null //zmienne dla funkcji klikania; first
-sClick = null //second
-
-document.addEventListener('click', function(event){ //klikanie / poruszanie
-	target = event.target
-	if(target.classList.contains("img")){ //bierka
-		if(fClick === null){ //za duzo tlumaczenia
-			fClick = splitInHalf(target.parentNode.id) //zamien na pozycje
-			highlight(target, false) //podswietl
-		}else if(plansza[fClick[0]][fClick[1]][0] == plansza[splitInHalf(target.parentNode.id)[0]][splitInHalf(target.parentNode.id)[1]][0]){ //zapomnialem i jest zapozno na takie myslenie
-			fClick = splitInHalf(target.parentNode.id) //zamien na pozycje
-			highlight() //usun podswietlenie
-			highlight(target, false) //podswietl
-		}else if(sClick === null){ //wypelnij druga
-			sClick = splitInHalf(target.parentNode.id) //zamien na pozycje
-			highlight(target, false) //podswietl
-			move()
-		}else{ 
-			fClick = sClick = null //wyzeruj wybor
-			highlight() //usun podswietlenie
+function generateKingMoves(start, piece){
+	let moves = []
+	for(let i = 0; i < 8; i++){
+		target = start + offset[i];
+		if(target > 0 && target < 64 && (plansza[target] == null || plansza[target][0] != piece[0])){
+			moves.push(target);
 		}
-		
-	}else if(target.parentNode.classList == "row"){ //rzad - puste pole
-		if(fClick != null && sClick === null){ //wypelnij druga
-			sClick = splitInHalf(target.id) //zamien na pozycje
-			highlight(target, false) //podswietl
-			move(fClick,sClick) //zrob ruch
-		}else{ 
-			fClick = sClick = null //wyzeruj wybor
-			highlight() //usun podswietlenie
-		}
-	}else{ //domyślnie
-		fClick = sClick = null //wyzeruj wybor
-		highlight() //usun podswietlenie
 	}
-})
+	return moves
+}
+function generateKnightMoves(start, piece){
+	let moves = [];
+	for(let i = 0; i < 8; i++){
+		let target = start + knightOffset[i];
+		if((target > 0 && target < 64) && (plansza[target] == null || plansza[target][0] != piece[0])){
+			if(i>3){
+				if(!(Math.abs(start/8 - target/8) > 2 || Math.abs(start%8 - target%8) > 2)){
+					moves.push(target);
+				}
+			}else{
+				moves.push(target);
+			}
+		}
+	}
+	return moves
+}
 
-//sekwencja startowa
-plansza = Empty2DArray(8,8) //stworz plansze
 start()
+
+fclick = null;
+sClick = null;
+document.onclick = function(e){
+	let target = e.target.classList;
+	if(target.contains("img")){
+		console.log("Zajęte pole")
+		let id = e.target.parentNode.id;
+		if(fclick == null || plansza[fclick][0] == plansza[parseInt(id)][0] && sClick == null){
+			fclick = parseInt(id);
+			console.log(id)
+			if(kolorDoPoruszenia == plansza[id][0]){
+				let whatToHighlight = (plansza[id][1] == "p") ? generatePawnMoves(fclick, plansza[fclick]) : (plansza[id][1] == "k") ? generateKingMoves(fclick, plansza[fclick]) : (plansza[id][1] == "n") ? generateKnightMoves(fclick, plansza[fclick]) : generateSlidingMoves(fclick, plansza[fclick]);
+				highlight(whatToHighlight, "hint");
+			}else{
+				fclick = null
+			}
+		}else if(fclick != null && sClick == null){
+			sclick = parseInt(id);
+			moveHelper(fclick, sclick);
+			fclick = null;
+			sclick = null;
+		}else{
+			fclick = null;
+			sclick = null;
+		}
+	}else{
+		console.log("Puste pole")
+		let id = e.target.id;
+		if(!isNaN(id)){
+			console.log("passed")
+			if(fclick != null && sClick == null){
+				sclick = parseInt(id);
+				moveHelper(fclick, sclick);
+				fclick = null;
+				sclick = null;
+			}else{
+				fclick = null;
+				sclick = null;
+			}
+		}
+	}
+}

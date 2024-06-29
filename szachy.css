@@ -4,22 +4,21 @@ body {
     align-items: center;
     justify-content: center;
     height: 100vh;
-    background-color: #f0f0f0;
+    background-color: #412e06;
 }
 
-.all{
-	display: flex;
-	flex-direction: column;
+.chessboard {
+	display: grid;
+	grid-template-columns: repeat(8, 80px);
+	grid-template-rows: repeat(8, 80px);
+	gap: 0;
 }
 
-.row{
-	display: flex;
-	flex-direction: row;
-}
-.piece{
+.square{
 	width: 80px;
 	height: 80px;
 }
+
 .coordinate-light {
 	background-color: #779952;
 }
@@ -28,6 +27,9 @@ body {
 }
 .highlight {
 	background-color: rgba(255,255,51, 0.5)
+}
+.hint {
+	background-color: rgb(112, 112, 111, 0.5)
 }
 
 .wk{content: url('https://images.chesscomfiles.com/chess-themes/pieces/neo/150/wk.png');}
