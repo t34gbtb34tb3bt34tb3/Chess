@@ -1,5 +1,5 @@
 const chessboard = document.getElementById("chessboard");
-const divSize = 80
+const divSize = 80 //Math.min(window.innerWidth, window.innerHeight) * 0.12;
 plansza = Array(64).fill()
 startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR"
 const offset = [8,-8,-1,1,7,-7,9,-9];
@@ -150,19 +150,28 @@ function moveHelper(start, target){
 					assignPiecesToBoard();
 					kolorDoPoruszenia = (kolorDoPoruszenia == "w") ? "b" : "w";
 					document.getElementById("tomove").innerHTML = "To move: " + kolorDoPoruszenia;
+				}else{
+					alert("szach")
 				}
+			}else{
+				alert("nie legalny ruch")
 			}
 		}else if(plansza[start][1] == "p"){
 			if(generatePawnMoves(start, plansza[start]).includes(target)){
 				console.log("ruch")
 				let poRuchu = deepCopy(plansza);
 				ruch(start, target, poRuchu);
+				poRuchu = promowaniePiona(poRuchu);
 				if(findCheck(((kolorDoPoruszenia == "w") ? whiteKing : blackKing), poRuchu)){
-					ruch(start, target, plansza);
+					plansza = deepCopy(poRuchu)
 					assignPiecesToBoard();
 					kolorDoPoruszenia = (kolorDoPoruszenia == "w") ? "b" : "w";
 					document.getElementById("tomove").innerHTML = "To move: " + kolorDoPoruszenia;
+				}else{
+					alert("szach")
 				}
+			}else{
+				alert("nie legalny ruch")
 			}
 		}else if(plansza[start][1] == "n"){
 			if(generateKnightMoves(start, plansza[start]).includes(target)){
@@ -174,7 +183,11 @@ function moveHelper(start, target){
 					assignPiecesToBoard();
 					kolorDoPoruszenia = (kolorDoPoruszenia == "w") ? "b" : "w";
 					document.getElementById("tomove").innerHTML = "To move: " + kolorDoPoruszenia;
+				}else{
+					alert("szach")
 				}
+			}else{
+				alert("nie legalny ruch")
 			}
 		}
 		else if(plansza[start][1] == "k"){
@@ -199,11 +212,32 @@ function moveHelper(start, target){
 					} else {
 						blackKing = kingPos;
 					}
+					alert("szach")
 				}
+			}else{
+				alert("nie legalny ruch")
 			}
 		}
 	}
 }
+function promowaniePiona(poRuchu){
+    for(let i = 56; i<64; i++){
+        if(poRuchu[i] != null && poRuchu[i][1] == "p" && poRuchu[i][0] == "w"){
+            let opcja = prompt('Na co chcesz promować białego piona: q(ueen), r(ook), n(ight), b(ishop)?');
+            poRuchu[i][1] = opcja.toLowerCase();
+        }
+    }
+    for(let i = 0; i<8; i++){
+        if(poRuchu[i] != null && poRuchu[i][1] == "p" && poRuchu[i][0] == "b"){
+            let opcja = prompt('Na co chcesz promować czarnego piona: q(ueen), r(ook), n(ight), b(ishop)?');
+            poRuchu[i][1] = opcja.toLowerCase();
+        }
+    }
+    return poRuchu;
+}
+
+
+
 
 function generatePawnMoves(start, piece){
 	let moves = []
@@ -220,11 +254,19 @@ function generatePawnMoves(start, piece){
 				moves.push(start+offset[0]);
 			}
 		}
-		if(plansza[start+offset[4]] != null && plansza[start+offset[4]][0] == "b"){ 
-			moves.push(start+offset[4]);
+		if(plansza[start+offset[4]] != null && plansza[start+offset[4]][0] == "b"){
+			if(start%8==0 && start+offset[4]%8==7){
+				console.log("ok")
+			}else{
+				moves.push(start+offset[4]);
+			}
 		}
 		if(plansza[start+offset[6]] != null && plansza[start+offset[6]][0] == "b"){ 
-			moves.push(start+offset[6]);
+			if(start%8==7 && start+offset[6]%8!=0){
+				console.log("ok")
+			}else{
+				moves.push(start+offset[6]);
+			}
 		}
 	}else if(piece[0] == "b"){ //jesli bialy 
 		if(start > 47 && start < 56){ //ruch o dwa do przodu
@@ -240,28 +282,28 @@ function generatePawnMoves(start, piece){
 			}
 		}
 		if(plansza[start+offset[5]] != null && plansza[start+offset[5]][0] == "w"){ 
-			moves.push(start+offset[5]);
+			if(start%8==0 && start+offset[5]%8!=7){
+				console.log("ok")
+			}else{
+				moves.push(start+offset[5]);
+			}
 		}
 		if(plansza[start+offset[7]] != null && plansza[start+offset[7]][0] == "w"){ 
-			moves.push(start+offset[7]);
+			if(start%8==7 && start+offset[7]%8!=0){
+				console.log("ok")
+			}else{
+				moves.push(start+offset[7]);
+			}
 		}
 	}
 	console.log("returning")
 	return moves
 }
-function move(){
-	for(var i = 0; i<64; i++){
-		if(plansza[i] != null){
-			if(plansza[i][0] === kolorDoPoruszenia){ // czyja tura
-				if(plansza[i][1] == "b" || plansza[i][1] == "r" || plansza[i][1] == "q"){
-					
-				}
-			}
-		}
-	}
-}
 
 function start(){
+	alert("Jeśli coś nie działa to napisz na email: domiksad@gmail.com (nie przeczytam)")
+	alert("Brak funkcjonalności bicia w przelocie, roszady, i sprawdzeniu mata")
+	alert('Czyli jak sie nie mozesz ruszyc bo caly czas masz powiadomienie: "szach" to możliwe że jest mat')
 	createBoard();
 	loadFEN(startFEN);
 	assignPiecesToBoard();
@@ -281,6 +323,8 @@ function findCheck(kingId, array){
 				if(array[target][0] != array[kingId][0]){ //czy nie ten sam kolor
 					if(array[target][1] == "r" || array[target][1] == "q"){
 						checks.push(target);
+					}else{
+						break;
 					}
 				}
 			}
@@ -296,6 +340,8 @@ function findCheck(kingId, array){
 				if(array[target][0] != array[kingId][0]){ //czy nie ten sam kolor
 					if(array[target][1] == "b" || array[target][1] == "q"){
 						checks.push(target);
+					}else{
+						break;
 					}
 				}
 			}
@@ -303,7 +349,7 @@ function findCheck(kingId, array){
 	}
 	for(let i = 0; i < 8; i++){ //sprawdz skoczki
 		let target = kingId + knightOffset[i];
-		if((target > 0 && target < 64) && (array[target] != null && array[target][0] != array[kingId][0])){
+		if((target > 0 && target < 64) && (array[target] != null && array[target][1] == "n" && array[target][0] != array[kingId][0])){
 			if(i>3){
 				if(!(Math.abs(kingId/8 - target/8) > 2 || Math.abs(kingId%8 - target%8) > 2)){
 					checks.push(target);
@@ -311,6 +357,21 @@ function findCheck(kingId, array){
 			}else{
 				checks.push(target);
 			}
+		}
+	}
+	if(array[kingId][0] == "w"){ //czarne piony
+		if(array[kingId+9] != null && array[kingId+9][0] == "b" && array[kingId+9][1] == "p"){
+			checks.push(kingId+9);
+		}
+		if(array[kingId+7] != null && array[kingId+7][0] == "b" && array[kingId+7][1] == "p"){
+			checks.push(kingId+7);
+		}
+	}else if(array[kingId][0] == "b"){ //czarne piony
+		if(array[kingId-9] != null && array[kingId-9][0] == "w" && array[kingId-9][1] == "p"){
+			checks.push(kingId-9);
+		}
+		if(array[kingId-7] != null && array[kingId-7][0] == "w" && array[kingId-7][1] == "p"){
+			checks.push(kingId-7);
 		}
 	}
 	console.log(checks)
